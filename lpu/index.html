@@ -198,8 +198,8 @@
     border-bottom-left-radius:var(--card-radius);
     border-bottom-right-radius:var(--card-radius);
     margin-top:-12px;
-    touch-action:manipulation;
-    -webkit-tap-highlight-color:transparent;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
   .brown-inner{
@@ -209,7 +209,11 @@
     height:350px; 
     width:100%;
     overflow:hidden;
+    pointer-events: none;
   }
+  .brown-inner video{
+    pointer-events:none;
+}
 
   .close-btn{
     position:absolute;
@@ -380,65 +384,129 @@ if (savedColor) {
     brownBox.style.backgroundColor = savedColor;
 }
 
-brownBox.addEventListener("pointerup", function () {
+
+function openColorPicker() {
+
+    const colorPicker = document.createElement("input");
+
+    colorPicker.type = "color";
+
+    colorPicker.value =
+        localStorage.getItem("messPassColor") || defaultColor;
+
+    colorPicker.style.position = "fixed";
+    colorPicker.style.left = "50%";
+    colorPicker.style.top = "50%";
+    colorPicker.style.width = "40px";
+    colorPicker.style.height = "40px";
+    colorPicker.style.opacity = "1";
+    colorPicker.style.zIndex = "999999";
+
+    document.body.appendChild(colorPicker);
+
+    colorPicker.addEventListener("input", function () {
+
+        brownBox.style.backgroundColor = this.value;
+
+        localStorage.setItem(
+            "messPassColor",
+            this.value
+        );
+
+    });
+
+    colorPicker.addEventListener("change", function () {
+
+        brownBox.style.backgroundColor = this.value;
+
+        localStorage.setItem(
+            "messPassColor",
+            this.value
+        );
+
+        setTimeout(function () {
+
+            if (colorPicker.parentNode) {
+                colorPicker.remove();
+            }
+
+        }, 500);
+
+    });
+
+    try {
+
+        if (colorPicker.showPicker) {
+
+            colorPicker.showPicker();
+
+        } else {
+
+            colorPicker.click();
+
+        }
+
+    } catch (error) {
+
+        colorPicker.click();
+
+    }
+}
+
+
+function registerTap() {
 
     tapCount++;
 
     clearTimeout(tapTimer);
 
     tapTimer = setTimeout(function () {
+
         tapCount = 0;
-    }, 700);
+
+    }, 800);
+
 
     if (tapCount === 3) {
 
         tapCount = 0;
 
-        const colorPicker = document.createElement("input");
+        clearTimeout(tapTimer);
 
-        colorPicker.type = "color";
-
-        colorPicker.value =
-            localStorage.getItem("messPassColor") || defaultColor;
-
-        colorPicker.style.position = "fixed";
-        colorPicker.style.left = "50%";
-        colorPicker.style.top = "50%";
-        colorPicker.style.width = "1px";
-        colorPicker.style.height = "1px";
-        colorPicker.style.opacity = "0.01";
-        colorPicker.style.zIndex = "99999";
-
-        document.body.appendChild(colorPicker);
-
-        colorPicker.addEventListener("input", function () {
-
-            brownBox.style.backgroundColor = this.value;
-
-            localStorage.setItem(
-                "messPassColor",
-                this.value
-            );
-
-        });
-
-        try {
-
-            if (typeof colorPicker.showPicker === "function") {
-                colorPicker.showPicker();
-            } else {
-                colorPicker.click();
-            }
-
-        } catch (error) {
-
-            colorPicker.click();
-
-        }
+        openColorPicker();
 
     }
 
-});
+}
+
+
+/* Android / iPhone */
+
+brownBox.addEventListener(
+    "touchend",
+    function(event) {
+
+        event.preventDefault();
+
+        registerTap();
+
+    },
+    {
+        passive:false
+    }
+);
+
+
+/* Laptop / Desktop */
+
+brownBox.addEventListener(
+    "click",
+    function() {
+
+        registerTap();
+
+    }
+);
 </script>
 
 </body>
